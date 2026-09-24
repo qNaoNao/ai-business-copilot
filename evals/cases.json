@@ -1,0 +1,249 @@
+[
+  {
+    "id": "monthly_kpis_jan_feb_2018",
+    "question": "2018年1月和2月的核心经营指标是否准确？",
+    "tool": "get_monthly_kpis",
+    "arguments": {
+      "start_month": "2018-01",
+      "end_month": "2018-02"
+    },
+    "checks": [
+      {
+        "type": "row_count",
+        "expected": 2
+      },
+      {
+        "type": "row",
+        "where": {"month": "2018-01"},
+        "expected": {
+          "gmv": {"approx": 924645.0, "abs_tol": 0.01},
+          "orders": 7069,
+          "customers": 6974,
+          "aov": {"approx": 130.8028009619, "abs_tol": 0.000001},
+          "days_in_month": 31
+        }
+      },
+      {
+        "type": "row",
+        "where": {"month": "2018-02"},
+        "expected": {
+          "gmv": {"approx": 826437.13, "abs_tol": 0.01},
+          "orders": 6555,
+          "customers": 6400,
+          "aov": {"approx": 126.0773653699, "abs_tol": 0.000001},
+          "days_in_month": 28
+        }
+      }
+    ]
+  },
+  {
+    "id": "largest_category_daily_gmv_decline",
+    "question": "2018年1月至2月日均GMV下降最大的品类是谁？",
+    "tool": "get_category_contribution",
+    "arguments": {
+      "base_month": "2018-01",
+      "compare_month": "2018-02",
+      "direction": "decline",
+      "limit": 1
+    },
+    "checks": [
+      {
+        "type": "row_count",
+        "expected": 1
+      },
+      {
+        "type": "first_row",
+        "expected": {
+          "category": "stationery",
+          "base_daily_gmv": {"approx": 1274.9264516129, "abs_tol": 0.000001},
+          "compare_daily_gmv": {"approx": 360.3760714286, "abs_tol": 0.000001},
+          "daily_gmv_change": {"approx": -914.5503801843, "abs_tol": 0.000001}
+        }
+      }
+    ]
+  },
+  {
+    "id": "stationery_driver_metrics",
+    "question": "stationery品类的日均GMV、AOV和平均商品价格变化是否准确？",
+    "tool": "compare_category",
+    "arguments": {
+      "category_name": "stationery",
+      "base_month": "2018-01",
+      "compare_month": "2018-02"
+    },
+    "checks": [
+      {
+        "type": "row",
+        "where": {"metric": "daily_gmv"},
+        "expected": {
+          "Base": {"approx": 1274.9264516129, "abs_tol": 0.000001},
+          "Compare": {"approx": 360.3760714286, "abs_tol": 0.000001},
+          "Change %": {"approx": -71.7335795353, "abs_tol": 0.000001}
+        }
+      },
+      {
+        "type": "row",
+        "where": {"metric": "aov"},
+        "expected": {
+          "Change %": {"approx": -28.2794394316, "abs_tol": 0.000001}
+        }
+      },
+      {
+        "type": "row",
+        "where": {"metric": "avg_item_price"},
+        "expected": {
+          "Change %": {"approx": -32.2108981959, "abs_tol": 0.000001}
+        }
+      }
+    ]
+  },
+  {
+    "id": "largest_stationery_sku_decline",
+    "question": "stationery中日均GMV下降贡献最大的SKU是谁？",
+    "tool": "get_category_sku_contribution",
+    "arguments": {
+      "category_name": "stationery",
+      "base_month": "2018-01",
+      "compare_month": "2018-02",
+      "direction": "decline",
+      "limit": 1
+    },
+    "checks": [
+      {
+        "type": "first_row",
+        "expected": {
+          "product_id": "5411e9269501a870cabf632f05655131",
+          "base_gmv": {"approx": 4515.0, "abs_tol": 0.01},
+          "compare_gmv": 0.0,
+          "daily_gmv_change": {"approx": -145.6451612903, "abs_tol": 0.000001},
+          "comparison_status": "not_sold_in_compare_month"
+        }
+      }
+    ]
+  },
+  {
+    "id": "sku_last_sales_week",
+    "question": "目标SKU最后一个有成交记录的周是哪一周？",
+    "tool": "get_entity_time_trend",
+    "arguments": {
+      "entity_type": "sku",
+      "entity_id": "5411e9269501a870cabf632f05655131",
+      "start_date": "2018-01-01",
+      "end_date": "2018-02-28",
+      "granularity": "week"
+    },
+    "checks": [
+      {
+        "type": "row_count",
+        "expected": 9
+      },
+      {
+        "type": "last_matching_row",
+        "where": {"has_sales": true},
+        "expected": {
+          "period_start": "2018-01-15",
+          "period_end": "2018-01-21",
+          "gmv": 903.0,
+          "orders": 7,
+          "items": 7
+        }
+      },
+      {
+        "type": "row",
+        "where": {"period_start": "2018-01-22"},
+        "expected": {
+          "gmv": 0.0,
+          "orders": 0,
+          "items": 0,
+          "has_sales": false
+        }
+      },
+      {
+        "type": "last_row",
+        "expected": {
+          "period_start": "2018-02-26",
+          "period_end": "2018-02-28",
+          "period_days": 3,
+          "is_partial_period": true
+        }
+      }
+    ]
+  },
+  {
+    "id": "sku_evidence_boundary",
+    "question": "SKU没有销售记录时，知识库是否禁止直接认定为缺货或下架？",
+    "tool": "search_business_knowledge",
+    "arguments": {
+      "query": "SKU 没有销售 缺货 下架 证据边界",
+      "limit": 5
+    },
+    "checks": [
+      {
+        "type": "row",
+        "where": {"id": "sku_data_scope"},
+        "expected": {
+          "content": {
+            "contains": [
+              "不能证明商品缺货、下架、停产或不可售",
+              "库存快照",
+              "商品上下架日志"
+            ]
+          }
+        }
+      },
+      {
+        "type": "row",
+        "where": {"id": "evidence_boundaries"},
+        "expected": {
+          "content": {
+            "contains": [
+              "工具数据直接支持的事实",
+              "需要额外数据验证的原因假设",
+              "不能断言缺货"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "currency_and_capability_boundary",
+    "question": "知识库是否禁止猜测币种、具体内部表名和负责人，并限制不受支持的承诺？",
+    "tool": "search_business_knowledge",
+    "arguments": {
+      "query": "币种 元 人民币 currency 表名 字段名 负责人 能力边界 承诺 管理建议",
+      "limit": 5
+    },
+    "checks": [
+      {
+        "type": "row",
+        "where": {"id": "currency_and_capability_boundaries"},
+        "expected": {
+          "content": {
+            "contains": [
+              "没有提供币种元数据",
+              "金额单位（数据未注明币种）",
+              "具体表名",
+              "数据负责人",
+              "不得承诺"
+            ]
+          }
+        }
+      },
+      {
+        "type": "row",
+        "where": {"id": "management_recommendation_rules"},
+        "expected": {
+          "content": {
+            "contains": [
+              "具体内部表名",
+              "数据负责人",
+              "当前已注册工具无法执行",
+              "不受支持的泛泛邀约"
+            ]
+          }
+        }
+      }
+    ]
+  }
+]

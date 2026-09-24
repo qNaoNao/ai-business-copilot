@@ -11,3 +11,5 @@ data/processed/
 *.sqlite
 
 .vscode/
+
+runs/
