@@ -69,6 +69,29 @@ The agent can resolve “这个SKU” from the previous turn, query its weekly
 trend, and explain that zero delivered-order sales do not by themselves prove
 a stockout or delisting.
 
+## Product screenshots
+
+### End-to-end business diagnosis
+
+The local Streamlit interface lets a business user submit a multi-step
+diagnostic question and revisit a saved result without making another API call.
+
+![AI Business Copilot business diagnosis](docs/images/01-business-diagnosis.jpg)
+
+### Analytics visualizations
+
+Deterministic tool outputs are converted into category contribution charts,
+KPI comparison cards, and SKU-level decline visualizations.
+
+![AI Business Copilot analytics charts](docs/images/02-analytics-charts.jpg)
+
+### History and report export
+
+Saved conversations can be reviewed locally and exported as editable Markdown
+or a standalone HTML report.
+
+![AI Business Copilot history and report export](docs/images/03-history-and-export.jpg)
+
 ## Architecture
 
 ```mermaid
@@ -154,6 +177,8 @@ in the agent instructions.
 ```text
 ai-business-copilot/
 ├── app.py                         # Streamlit chat application
+├── docs/
+│   └── images/                    # README product screenshots
 ├── evals/
 │   └── cases.json                 # API-free acceptance cases and expected facts
 ├── knowledge_base/
