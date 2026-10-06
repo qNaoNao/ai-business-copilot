@@ -130,6 +130,7 @@ def history_records_to_messages(
                 record.get("turn_number")
                 or position
             ),
+            **record.get("workflow", {}),
         })
 
     return messages
@@ -147,6 +148,7 @@ def save_run(
     previous_response_id: str | None = None,
     response_id: str | None = None,
     history_path: Path = RUN_HISTORY_PATH,
+    workflow: dict[str, Any] | None = None,
 ) -> Path:
     """Append one local run record without storing credentials."""
 
@@ -162,6 +164,7 @@ def save_run(
         "tool_trace": tool_trace,
         "answer": answer,
         "error": error,
+        "workflow": workflow or {},
     }
 
     history_path.parent.mkdir(parents=True, exist_ok=True)

@@ -1,4 +1,5 @@
 import unittest
+from src.database import DB_PATH
 
 from src.offline_evals import (
     evaluate_case,
@@ -9,6 +10,7 @@ from src.offline_evals import (
 
 
 class OfflineEvaluationTests(unittest.TestCase):
+    @unittest.skipUnless(DB_PATH.exists(), "Optional private Olist database not available")
     def test_project_acceptance_cases_pass_against_local_data(self):
         cases = load_eval_cases()
         summary = run_evaluations(cases)

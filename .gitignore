@@ -13,3 +13,10 @@ data/processed/
 .vscode/
 
 runs/
+
+.venv/
+.cache/
+.demo/
+*.sqlite3
+.pytest_cache/
+:memory:.ses

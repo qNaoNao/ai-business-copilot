@@ -1,0 +1,31 @@
+name: API-free acceptance
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      COPILOT_RETRIEVAL: bm25
+      OPENAI_API_KEY: ''
+      LANGSMITH_TRACING: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: python -m pip install -r requirements.lock.txt
+      - run: python -m pip check
+      - name: Unit, synthetic SQL, workflow recovery and Streamlit acceptance
+        run: python -B -m unittest discover -s tests -v
+      - name: Keyword and BM25 retrieval evaluation (no embedding download)
+        run: python -m src.retrieval_evals
+      - uses: actions/upload-artifact@v4
+        with:
+          name: retrieval-evaluation
+          path: docs/evaluation/retrieval_results.json

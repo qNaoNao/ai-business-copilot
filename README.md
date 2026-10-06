@@ -3,12 +3,38 @@
 An evidence-based business analytics agent that turns natural-language questions
 into auditable analysis over a local SQLite database.
 
-The project combines deterministic analytics tools, a lightweight business
-knowledge base, OpenAI Responses API tool calling, multi-turn conversations,
-interactive charts, local run history, and downloadable analysis reports.
+The project combines deterministic SQL analytics, versioned local business RAG,
+a persistent LangGraph tool-calling workflow, multi-turn conversations, charts,
+run audits, and downloadable reports. Free demo and paid model modes are explicitly
+separated; the demo executes real SQL with a fixed plan, not a simulated LLM.
 
-> **Status:** local MVP complete. The application and offline acceptance suite
-> run locally; public deployment is not included.
+> **Status (2026-10-05):** engineering-oriented local, single-agent application.
+> 68 local automated tests pass; public deployment and GitHub CI execution are
+> not claimed. GitHub Actions configuration is included but must be pushed/run.
+
+## Engineering upgrade
+
+- **Real graph persistence:** retrieve → model/plan → validated tools → model →
+  evidence checks. SQLite checkpoints preserve completed nodes and selected
+  entities across process restarts; unfinished turns can be resumed in the UI.
+- **Local hybrid RAG:** Chinese/English BM25 + multilingual MiniLM embeddings,
+  reciprocal-rank fusion, document chunks, content-version hashes and citations.
+  Missing/stale vector indexes visibly fall back to BM25; model download is explicit.
+- **Bounded paid execution:** up to 6 model requests and 6 tool calls per turn;
+  3500 output-token limit per request, timeout and no automatic SDK retries.
+  Budget exhaustion retains partial evidence instead of discarding the analysis.
+- **Auditability:** input/output/cached tokens, tool latency, citation checks,
+  currency/causality pattern checks and advisory numeric checks accompany reports.
+  Cost estimates are unknown until three model-specific prices are configured.
+- **Reproducibility:** a synthetic SQL dataset supports clean-checkout demos,
+  isolated workflow recovery tests, Streamlit acceptance and API-free CI.
+
+Read [upgrade, test evidence and boundaries](docs/ENGINEERING_UPGRADE.md) and
+[user handoff / publishing checklist](docs/HANDOFF_2.0.md).
+
+The upgrade remains local. Default free mode, persistent recovery, citation audit
+and charts can be exercised without an API key; the screenshots below include
+both the original model acceptance and the new explicitly labelled free demo.
 
 ## Why this project exists
 
@@ -71,6 +97,16 @@ a stockout or delisting.
 
 ## Product screenshots
 
+### Engineering upgrade: free demo and checkpoint recovery
+
+The new UI labels demo answers explicitly, keeps graph conversations recoverable,
+and includes knowledge-version citations and execution audits. These screenshots
+use the default narrow in-app browser; the original wider UI views are below.
+
+![Explicitly labelled free local workflow](docs/images/04-engineering-upgrade.jpg)
+
+![Recovered two-turn session with weekly charts](docs/images/05-workflow-recovery.jpg)
+
 ### End-to-end business diagnosis
 
 The local Streamlit interface lets a business user submit a multi-step
@@ -97,12 +133,17 @@ or a standalone HTML report.
 ```mermaid
 flowchart LR
     User[Business user] --> UI[Streamlit chat or terminal]
-    UI --> Agent[Responses API tool-calling loop]
+    UI --> Agent[LangGraph persistent workflow]
+    Agent --> Model[OpenAI Responses API or explicit free demo plan]
+    Model --> Agent
     Agent --> Registry[Provider-neutral tool registry]
     Registry --> Analytics[Deterministic analytics tools]
     Registry --> Knowledge[Local business knowledge search]
     Analytics --> DB[(SQLite business database)]
-    Knowledge --> Rules[(JSON business rules)]
+    Knowledge --> Rules[(Versioned local documents)]
+    Knowledge --> Index[BM25 + multilingual MiniLM + RRF]
+    Agent --> Checkpoint[(SQLite checkpoints)]
+    Agent --> Verify[Evidence rule checks + token audit]
     Agent --> History[(Local JSONL run history)]
     History --> UI
     UI --> Export[CSV, Markdown, and HTML exports]
@@ -110,7 +151,9 @@ flowchart LR
 
 The analytics layer does not depend on an agent framework. `src/tools/registry.py`
 exposes JSON-compatible tool definitions and a single execution entry point,
-while the model-facing loop lives separately in `src/agent.py`.
+while the persistent model-facing workflow lives separately in `src/workflow.py`.
+`src/agent.py` retains the original paid terminal loop for backwards compatibility;
+the UI uses the new graph, and `python -m src.workflow` is the new persistent CLI.
 
 ## Available tools
 
@@ -188,6 +231,11 @@ ai-business-copilot/
 ├── src/
 │   ├── agent.py                   # Responses API multi-turn tool loop
 │   ├── database.py                # SQLite connection helper
+│   ├── demo_data.py               # Non-overwriting synthetic database bootstrap
+│   ├── retrieval.py               # Versioned BM25 / local vectors / RRF
+│   ├── retrieval_evals.py         # Keyword/BM25/hybrid comparison
+│   ├── evidence.py                # Limited rule-based answer checks
+│   ├── workflow.py                # Persistent LangGraph loop and recovery
 │   ├── offline_evals.py           # Deterministic acceptance runner
 │   ├── report_export.py           # Markdown and standalone HTML reports
 │   ├── run_history.py             # Local JSONL persistence and history loading
@@ -195,7 +243,7 @@ ai-business-copilot/
 │   ├── ui_visualizations.py       # Chart and KPI-card preparation
 │   └── tools/
 │       ├── business_analytics.py  # Monthly, category, and SKU analytics
-│       ├── knowledge_base.py      # Local keyword knowledge retrieval
+│       ├── knowledge_base.py      # Retrieval adapter and keyword baseline
 │       ├── registry.py            # Tool schemas and execution registry
 │       └── time_trends.py         # Daily and weekly entity trends
 ├── tests/                         # Unit, integration, UI-helper, and export tests
@@ -210,13 +258,13 @@ are intentionally excluded from Git.
 
 ## Quick start
 
-### 1. Create a Python environment
+### 1. Create an isolated Python environment
 
 Python 3.11 is recommended.
 
 ```bash
-conda create -n ai-copilot python=3.11
-conda activate ai-copilot
+python3.11 -m venv .venv
+source .venv/bin/activate
 ```
 
 ### 2. Install dependencies
@@ -224,10 +272,34 @@ conda activate ai-copilot
 From the project root:
 
 ```bash
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.lock.txt
 ```
 
-### 3. Configure the API
+### 3. Choose data (no API key needed for a demo)
+
+Your private database at `data/processed/business.db` is used by default.
+For a clean checkout, create a small, labelled synthetic dataset:
+
+```bash
+python -m src.demo_data
+export BUSINESS_DB_PATH="$PWD/.demo/business.db"
+```
+
+The bootstrap refuses to overwrite an existing database. The Streamlit UI also
+falls back to this synthetic fixture automatically when no private DB is present.
+It does not claim synthetic business numbers are real customer/company results.
+
+### 4. Optional local vector index
+
+```bash
+python -m src.retrieval --build
+```
+
+This downloads a multilingual ONNX model once and embeds documents locally;
+it does not call a paid model API. No index/model is committed to Git.
+Without this step, retrieval runs in clearly labelled BM25 fallback mode.
+
+### 5. Optional paid model API
 
 Copy the example file and add a project API key:
 
@@ -240,28 +312,21 @@ OPENAI_API_KEY=your_api_key_here
 OPENAI_MODEL=gpt-5-mini
 ```
 
-The `.env` file is ignored by Git. Never commit or share the real key.
+The `.env` file is ignored by Git. Never commit or share the real key. Free UI
+mode is the default even when a key exists; paid mode additionally requires the
+user's UI opt-in. On macOS/Linux, activate `.venv` before launching this version.
 
-### 4. Provide the local database
-
-Confirm that the prepared database exists at:
-
-```text
-data/processed/business.db
-```
-
-The database is a local project artifact and is not committed to Git.
-
-### 5. Start the web application
+### 6. Start the web application
 
 ```bash
-python -m streamlit run app.py
+python -m streamlit run app.py --server.address 127.0.0.1 --browser.gatherUsageStats false
 ```
 
 Open `http://localhost:8501` if the browser does not open automatically.
 Opening the page, viewing history, rendering charts, downloading CSV files,
-and exporting reports do not call the OpenAI API. Submitting a new chat
-question does.
+and exporting reports do not call the OpenAI API. New questions in the free demo
+remain free. Paid-mode questions and unfinished paid-workflow recovery can call
+the API. Reopening a completed checkpoint does not repeat the model request.
 
 ## Web application behavior
 
@@ -270,6 +335,8 @@ question does.
 - **历史会话** restores saved questions, answers, tool results, charts, and
   downloads in read-only mode.
 - **返回当前会话** returns to the unfinished live browser session.
+- **可恢复工作流 → 恢复并继续该会话** reloads new-version persistent conversations
+  and resumes unfinished graph steps. Original JSONL history remains read-only.
 - **查看本轮使用的数据工具** exposes the exact arguments and result rows used
   for an answer.
 - Successful tabular outputs can be downloaded as UTF-8 CSV files.
@@ -282,7 +349,16 @@ status. API keys are never stored in run history.
 
 ## Terminal interface
 
-The same agent can run without the web UI:
+The new persistent, free CLI works without the web UI:
+
+```bash
+python -m src.workflow --session demo-cli
+python -m src.workflow --session demo-cli --question "请沿用这个SKU，按周分析2018-01-01至2018-02-28的GMV、订单和件数。"
+python -m src.workflow --session demo-cli --resume
+```
+
+Add `--backend openai` explicitly for paid natural-language tool selection.
+The legacy paid terminal loop remains available (it does not use graph checkpoints):
 
 ```bash
 python -m src.agent
@@ -296,7 +372,7 @@ submit. Type `EXIT` when the next question begins to end the session.
 Run the full automated test suite:
 
 ```bash
-python -m unittest discover -s tests -v
+COPILOT_RETRIEVAL=bm25 python -B -m unittest discover -s tests -v
 ```
 
 Run the deterministic business acceptance suite:
@@ -305,13 +381,29 @@ Run the deterministic business acceptance suite:
 python -m src.offline_evals
 ```
 
+The original Olist-specific suite requires your excluded private DB; the new
+synthetic SQL/workflow/UI tests run on clean checkouts without it. Missing private
+data is explicitly reported as skipped tests, not presented as passed tests.
+
+Compare retrieval systems without paying an API fee:
+
+```bash
+python -m src.retrieval_evals --dense
+```
+
 Current local validation:
 
-- **42 automated tests passed**;
+- **68 automated tests passed locally** (42 original + 26 new);
 - **7/7 offline business questions passed**;
 - **17/17 deterministic fact checks passed**;
 - the offline suite makes no OpenAI API request and does not require an API
   key.
+
+On the 12 relevant holdout retrieval questions, Hit@3 is 6/12 for the keyword
+baseline and 11/12 for both BM25 and hybrid. All four unrelated holdout questions
+abstain. This small six-document benchmark does **not** demonstrate superiority
+of vectors over BM25 or imply production accuracy. Full cases, split labels,
+MRR and measured latency are in [retrieval results](docs/evaluation/retrieval_results.json).
 
 The acceptance cases lock down:
 
@@ -330,6 +422,11 @@ The acceptance cases lock down:
 - `.env`, SQLite files, raw/processed data, and `runs/` are excluded from Git.
 - Report HTML escapes user and model text before rendering.
 - Run history stays on the local machine unless the user explicitly shares it.
+- Business SQLite connections are read-only; tool names and parameters are
+  locally validated against an allowlist. No arbitrary SQL/shell tool is exposed.
+- Paid mode sends questions, retrieved snippets and tool results to OpenAI and
+  uses `store=True` response chaining. Offline/demo mode does not. Review your
+  data policy before using any non-public business data with paid mode.
 - The application does not place credentials in prompts, reports, CSV files, or
   history records.
 
@@ -337,10 +434,18 @@ The acceptance cases lock down:
 
 - The application currently runs locally and has no authentication or hosted
   multi-user environment.
-- The prepared SQLite database is excluded from Git; another user must provide
-  a compatible local database before running analytics.
-- The knowledge retriever is deterministic keyword search, not semantic vector
-  retrieval.
+- The private SQLite database is excluded from Git; synthetic demo data is
+  reproducible but not a replacement for a properly governed production dataset.
+- The RAG corpus currently contains only six short curated business rules, not
+  a large enterprise document collection. Hybrid retrieval has not outperformed
+  BM25 on this small benchmark.
+- Checkpoints provide node-boundary recovery, not exactly-once remote billing.
+  A crash after a remote response but before checkpoint commit can require a
+  repeated API request. Expired server-side response chains may need a new session.
+- SQLite/checkpoint locks target local macOS/Linux use. Multi-user hosting,
+  authentication, tenant isolation, Windows locking and deployment are not delivered.
+- Rule checks flag selected risks, but cannot prove every number-to-metric mapping,
+  correct causal interpretation, or immunity to prompt injection.
 - Analysis is limited to the registered tools and fields available in the local
   SQLite dataset.
 - The current dataset contains no currency metadata, so displayed amounts are
@@ -352,7 +457,9 @@ The acceptance cases lock down:
 
 ## Next steps
 
-- Complete one final end-to-end model acceptance run after documentation review.
-- Add selected UI screenshots to the repository for portfolio presentation.
-- Optionally package the app for controlled deployment with authentication and
-  secret management.
+- Push the upgrade and confirm GitHub Actions actually runs successfully.
+- Optionally authorize one bounded paid live acceptance run; this upgrade's new
+  API path has been tested with fake responses, not billed production requests.
+- Decide a license for original code and separately check model/data terms.
+- If hosting is needed, first add authentication, dataset isolation and secret
+  management; do not expose the paid local app directly to the Internet.

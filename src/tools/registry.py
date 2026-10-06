@@ -8,6 +8,8 @@ tool.
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 import json
+import inspect
+import re
 from typing import Any
 
 import pandas as pd
@@ -278,6 +280,33 @@ def call_tool(name: str, arguments: Mapping[str, Any]) -> list[dict[str, Any]]:
             f"Unknown tool {name!r}. Available tools: {available}"
         ) from error
 
+    if not isinstance(arguments, Mapping):
+        raise ValueError("Tool arguments must be an object")
+    properties = tool.parameters["properties"]
+    unknown = set(arguments) - set(properties)
+    if unknown:
+        raise ValueError("Unexpected tool arguments: " + ", ".join(sorted(unknown)))
+    for parameter in inspect.signature(tool.function).parameters.values():
+        if parameter.default is inspect.Parameter.empty and parameter.name not in arguments:
+            raise ValueError("Missing tool argument: " + parameter.name)
+    for key, value in arguments.items():
+        schema = properties[key]
+        valid_type = (isinstance(value, str) if schema["type"] == "string"
+                      else isinstance(value, int) and not isinstance(value, bool))
+        if not valid_type:
+            raise ValueError(f"{key} must be {schema['type']}")
+        if "enum" in schema and value not in schema["enum"]:
+            raise ValueError(f"{key} is not an allowed option")
+        if isinstance(value, str):
+            if not value.strip() or len(value) > 4000:
+                raise ValueError(f"{key} must be non-empty and at most 4000 characters")
+            if "pattern" in schema and not re.fullmatch(schema["pattern"], value):
+                raise ValueError(f"{key} has an invalid format")
+        elif value < schema.get("minimum", value) or value > schema.get("maximum", value):
+            raise ValueError(f"{key} is outside the allowed range")
+    for first, last in [("start_month", "end_month"), ("base_month", "compare_month"), ("start_date", "end_date")]:
+        if first in arguments and last in arguments and arguments[first] > arguments[last]:
+            raise ValueError(f"{last} must be on or after {first}")
     result = tool.function(**dict(arguments))
 
     if isinstance(result.index, pd.RangeIndex):

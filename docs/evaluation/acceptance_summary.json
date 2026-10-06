@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-05",
+  "type": "manual_snapshot_of_executed_acceptance_commands",
+  "local_environment": {"python": "3.11", "tests_discovered": 68, "passed": 68, "skipped": 0, "failed": 0},
+  "clean_environment_without_private_db_or_key": {"tests_discovered": 68, "passed": 57, "skipped_private_data_checks": 11, "failed": 0, "dependency_install": "success"},
+  "original_business_evaluation": {"cases_passed": 7, "cases_total": 7, "checks_passed": 17, "checks_total": 17},
+  "browser_acceptance": ["explicit_free_mode", "category_to_sku", "weekly_followup", "real_sql_charts"],
+  "paid_model_live_acceptance_this_upgrade": "not_run",
+  "paid_model_loop_test_method": "fake_responses",
+  "github_actions": "configuration_added_not_yet_pushed_or_executed",
+  "limits": "Local single-user verification, not production load/security certification or model-answer accuracy. Synthetic-only checkouts skip private Olist expectations explicitly."
+}

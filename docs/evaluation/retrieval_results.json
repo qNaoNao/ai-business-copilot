@@ -1,0 +1,1093 @@
+{
+  "timestamp_utc": "2026-10-05T00:31:55.113289+00:00",
+  "dense_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "notes": "24 human-authored cases, 6 short business rules; not a production accuracy claim. Gate/aliases selected on development only. Hit@3 counts any labelled relevant document, not all relevant documents. Negative cases measured separately.",
+  "summaries": [
+    {
+      "system": "keyword_baseline",
+      "split": "development",
+      "positive_cases": 6,
+      "negative_cases": 2,
+      "hit_at_3": 1.0,
+      "mrr_at_3": 1.0,
+      "abstention_accuracy": 1.0,
+      "median_latency_ms": 0.574
+    },
+    {
+      "system": "keyword_baseline",
+      "split": "holdout",
+      "positive_cases": 12,
+      "negative_cases": 4,
+      "hit_at_3": 0.5,
+      "mrr_at_3": 0.5,
+      "abstention_accuracy": 1.0,
+      "median_latency_ms": 0.414
+    },
+    {
+      "system": "bm25",
+      "split": "development",
+      "positive_cases": 6,
+      "negative_cases": 2,
+      "hit_at_3": 1.0,
+      "mrr_at_3": 1.0,
+      "abstention_accuracy": 1.0,
+      "median_latency_ms": 0.059
+    },
+    {
+      "system": "bm25",
+      "split": "holdout",
+      "positive_cases": 12,
+      "negative_cases": 4,
+      "hit_at_3": 0.9166666666666666,
+      "mrr_at_3": 0.9166666666666666,
+      "abstention_accuracy": 1.0,
+      "median_latency_ms": 0.043
+    },
+    {
+      "system": "hybrid",
+      "split": "development",
+      "positive_cases": 6,
+      "negative_cases": 2,
+      "hit_at_3": 1.0,
+      "mrr_at_3": 1.0,
+      "abstention_accuracy": 1.0,
+      "median_latency_ms": 5.563
+    },
+    {
+      "system": "hybrid",
+      "split": "holdout",
+      "positive_cases": 12,
+      "negative_cases": 4,
+      "hit_at_3": 0.9166666666666666,
+      "mrr_at_3": 0.9166666666666666,
+      "abstention_accuracy": 1.0,
+      "median_latency_ms": 5.216
+    }
+  ],
+  "cases": [
+    {
+      "system": "keyword_baseline",
+      "id": "dev-01",
+      "split": "development",
+      "expected": [
+        "core_kpi_definitions"
+      ],
+      "retrieved": [
+        "core_kpi_definitions"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 5.374
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "dev-02",
+      "split": "development",
+      "expected": [
+        "sku_data_scope"
+      ],
+      "retrieved": [
+        "sku_data_scope"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.817
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "dev-03",
+      "split": "development",
+      "expected": [
+        "fair_month_comparison"
+      ],
+      "retrieved": [
+        "fair_month_comparison"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.628
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "dev-04",
+      "split": "development",
+      "expected": [
+        "evidence_boundaries"
+      ],
+      "retrieved": [
+        "evidence_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.574
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "dev-05",
+      "split": "development",
+      "expected": [
+        "management_recommendation_rules"
+      ],
+      "retrieved": [
+        "management_recommendation_rules"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.562
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "dev-06",
+      "split": "development",
+      "expected": [
+        "currency_and_capability_boundaries"
+      ],
+      "retrieved": [
+        "currency_and_capability_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.545
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "dev-07",
+      "split": "development",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 0.556
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "dev-08",
+      "split": "development",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 0.488
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-01",
+      "split": "holdout",
+      "expected": [
+        "core_kpi_definitions"
+      ],
+      "retrieved": [
+        "core_kpi_definitions"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.532
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-02",
+      "split": "holdout",
+      "expected": [
+        "core_kpi_definitions"
+      ],
+      "retrieved": [],
+      "hit_at_3": false,
+      "rr": 0,
+      "correct_abstention": null,
+      "latency_ms": 0.678
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-03",
+      "split": "holdout",
+      "expected": [
+        "fair_month_comparison"
+      ],
+      "retrieved": [],
+      "hit_at_3": false,
+      "rr": 0,
+      "correct_abstention": null,
+      "latency_ms": 0.437
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-04",
+      "split": "holdout",
+      "expected": [
+        "fair_month_comparison"
+      ],
+      "retrieved": [
+        "fair_month_comparison"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.545
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-05",
+      "split": "holdout",
+      "expected": [
+        "sku_data_scope",
+        "evidence_boundaries"
+      ],
+      "retrieved": [],
+      "hit_at_3": false,
+      "rr": 0,
+      "correct_abstention": null,
+      "latency_ms": 0.53
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-06",
+      "split": "holdout",
+      "expected": [
+        "sku_data_scope"
+      ],
+      "retrieved": [
+        "sku_data_scope"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.488
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-07",
+      "split": "holdout",
+      "expected": [
+        "evidence_boundaries"
+      ],
+      "retrieved": [
+        "core_kpi_definitions"
+      ],
+      "hit_at_3": false,
+      "rr": 0,
+      "correct_abstention": null,
+      "latency_ms": 0.429
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-08",
+      "split": "holdout",
+      "expected": [
+        "evidence_boundaries"
+      ],
+      "retrieved": [],
+      "hit_at_3": false,
+      "rr": 0,
+      "correct_abstention": null,
+      "latency_ms": 0.377
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-09",
+      "split": "holdout",
+      "expected": [
+        "management_recommendation_rules"
+      ],
+      "retrieved": [],
+      "hit_at_3": false,
+      "rr": 0,
+      "correct_abstention": null,
+      "latency_ms": 0.375
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-10",
+      "split": "holdout",
+      "expected": [
+        "management_recommendation_rules"
+      ],
+      "retrieved": [
+        "management_recommendation_rules"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.414
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-11",
+      "split": "holdout",
+      "expected": [
+        "currency_and_capability_boundaries",
+        "core_kpi_definitions"
+      ],
+      "retrieved": [
+        "currency_and_capability_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.408
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-12",
+      "split": "holdout",
+      "expected": [
+        "currency_and_capability_boundaries"
+      ],
+      "retrieved": [
+        "currency_and_capability_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.398
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-13",
+      "split": "holdout",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 0.36
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-14",
+      "split": "holdout",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 0.347
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-15",
+      "split": "holdout",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 0.34
+    },
+    {
+      "system": "keyword_baseline",
+      "id": "test-16",
+      "split": "holdout",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 0.341
+    },
+    {
+      "system": "bm25",
+      "id": "dev-01",
+      "split": "development",
+      "expected": [
+        "core_kpi_definitions"
+      ],
+      "retrieved": [
+        "core_kpi_definitions",
+        "fair_month_comparison"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.126
+    },
+    {
+      "system": "bm25",
+      "id": "dev-02",
+      "split": "development",
+      "expected": [
+        "sku_data_scope"
+      ],
+      "retrieved": [
+        "sku_data_scope",
+        "evidence_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.079
+    },
+    {
+      "system": "bm25",
+      "id": "dev-03",
+      "split": "development",
+      "expected": [
+        "fair_month_comparison"
+      ],
+      "retrieved": [
+        "fair_month_comparison"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.047
+    },
+    {
+      "system": "bm25",
+      "id": "dev-04",
+      "split": "development",
+      "expected": [
+        "evidence_boundaries"
+      ],
+      "retrieved": [
+        "evidence_boundaries",
+        "management_recommendation_rules"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.059
+    },
+    {
+      "system": "bm25",
+      "id": "dev-05",
+      "split": "development",
+      "expected": [
+        "management_recommendation_rules"
+      ],
+      "retrieved": [
+        "management_recommendation_rules"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.044
+    },
+    {
+      "system": "bm25",
+      "id": "dev-06",
+      "split": "development",
+      "expected": [
+        "currency_and_capability_boundaries"
+      ],
+      "retrieved": [
+        "currency_and_capability_boundaries",
+        "core_kpi_definitions",
+        "management_recommendation_rules"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.09
+    },
+    {
+      "system": "bm25",
+      "id": "dev-07",
+      "split": "development",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 0.025
+    },
+    {
+      "system": "bm25",
+      "id": "dev-08",
+      "split": "development",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 0.022
+    },
+    {
+      "system": "bm25",
+      "id": "test-01",
+      "split": "holdout",
+      "expected": [
+        "core_kpi_definitions"
+      ],
+      "retrieved": [
+        "core_kpi_definitions",
+        "fair_month_comparison",
+        "evidence_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.08
+    },
+    {
+      "system": "bm25",
+      "id": "test-02",
+      "split": "holdout",
+      "expected": [
+        "core_kpi_definitions"
+      ],
+      "retrieved": [
+        "core_kpi_definitions"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.044
+    },
+    {
+      "system": "bm25",
+      "id": "test-03",
+      "split": "holdout",
+      "expected": [
+        "fair_month_comparison"
+      ],
+      "retrieved": [
+        "fair_month_comparison"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.057
+    },
+    {
+      "system": "bm25",
+      "id": "test-04",
+      "split": "holdout",
+      "expected": [
+        "fair_month_comparison"
+      ],
+      "retrieved": [
+        "fair_month_comparison"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.043
+    },
+    {
+      "system": "bm25",
+      "id": "test-05",
+      "split": "holdout",
+      "expected": [
+        "sku_data_scope",
+        "evidence_boundaries"
+      ],
+      "retrieved": [
+        "sku_data_scope",
+        "evidence_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.056
+    },
+    {
+      "system": "bm25",
+      "id": "test-06",
+      "split": "holdout",
+      "expected": [
+        "sku_data_scope"
+      ],
+      "retrieved": [
+        "sku_data_scope"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.045
+    },
+    {
+      "system": "bm25",
+      "id": "test-07",
+      "split": "holdout",
+      "expected": [
+        "evidence_boundaries"
+      ],
+      "retrieved": [
+        "core_kpi_definitions"
+      ],
+      "hit_at_3": false,
+      "rr": 0,
+      "correct_abstention": null,
+      "latency_ms": 0.041
+    },
+    {
+      "system": "bm25",
+      "id": "test-08",
+      "split": "holdout",
+      "expected": [
+        "evidence_boundaries"
+      ],
+      "retrieved": [
+        "evidence_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.04
+    },
+    {
+      "system": "bm25",
+      "id": "test-09",
+      "split": "holdout",
+      "expected": [
+        "management_recommendation_rules"
+      ],
+      "retrieved": [
+        "management_recommendation_rules"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.049
+    },
+    {
+      "system": "bm25",
+      "id": "test-10",
+      "split": "holdout",
+      "expected": [
+        "management_recommendation_rules"
+      ],
+      "retrieved": [
+        "management_recommendation_rules"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.037
+    },
+    {
+      "system": "bm25",
+      "id": "test-11",
+      "split": "holdout",
+      "expected": [
+        "currency_and_capability_boundaries",
+        "core_kpi_definitions"
+      ],
+      "retrieved": [
+        "currency_and_capability_boundaries",
+        "core_kpi_definitions"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.066
+    },
+    {
+      "system": "bm25",
+      "id": "test-12",
+      "split": "holdout",
+      "expected": [
+        "currency_and_capability_boundaries"
+      ],
+      "retrieved": [
+        "currency_and_capability_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 0.042
+    },
+    {
+      "system": "bm25",
+      "id": "test-13",
+      "split": "holdout",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 0.024
+    },
+    {
+      "system": "bm25",
+      "id": "test-14",
+      "split": "holdout",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 0.019
+    },
+    {
+      "system": "bm25",
+      "id": "test-15",
+      "split": "holdout",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 0.023
+    },
+    {
+      "system": "bm25",
+      "id": "test-16",
+      "split": "holdout",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 0.02
+    },
+    {
+      "system": "hybrid",
+      "id": "dev-01",
+      "split": "development",
+      "expected": [
+        "core_kpi_definitions"
+      ],
+      "retrieved": [
+        "core_kpi_definitions",
+        "fair_month_comparison"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 6.186
+    },
+    {
+      "system": "hybrid",
+      "id": "dev-02",
+      "split": "development",
+      "expected": [
+        "sku_data_scope"
+      ],
+      "retrieved": [
+        "sku_data_scope",
+        "evidence_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 5.563
+    },
+    {
+      "system": "hybrid",
+      "id": "dev-03",
+      "split": "development",
+      "expected": [
+        "fair_month_comparison"
+      ],
+      "retrieved": [
+        "fair_month_comparison"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 5.772
+    },
+    {
+      "system": "hybrid",
+      "id": "dev-04",
+      "split": "development",
+      "expected": [
+        "evidence_boundaries"
+      ],
+      "retrieved": [
+        "evidence_boundaries",
+        "management_recommendation_rules"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 5.384
+    },
+    {
+      "system": "hybrid",
+      "id": "dev-05",
+      "split": "development",
+      "expected": [
+        "management_recommendation_rules"
+      ],
+      "retrieved": [
+        "management_recommendation_rules"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 4.605
+    },
+    {
+      "system": "hybrid",
+      "id": "dev-06",
+      "split": "development",
+      "expected": [
+        "currency_and_capability_boundaries"
+      ],
+      "retrieved": [
+        "currency_and_capability_boundaries",
+        "core_kpi_definitions",
+        "management_recommendation_rules"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 6.049
+    },
+    {
+      "system": "hybrid",
+      "id": "dev-07",
+      "split": "development",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 4.009
+    },
+    {
+      "system": "hybrid",
+      "id": "dev-08",
+      "split": "development",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 3.95
+    },
+    {
+      "system": "hybrid",
+      "id": "test-01",
+      "split": "holdout",
+      "expected": [
+        "core_kpi_definitions"
+      ],
+      "retrieved": [
+        "core_kpi_definitions",
+        "fair_month_comparison",
+        "evidence_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 5.108
+    },
+    {
+      "system": "hybrid",
+      "id": "test-02",
+      "split": "holdout",
+      "expected": [
+        "core_kpi_definitions"
+      ],
+      "retrieved": [
+        "core_kpi_definitions"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 4.748
+    },
+    {
+      "system": "hybrid",
+      "id": "test-03",
+      "split": "holdout",
+      "expected": [
+        "fair_month_comparison"
+      ],
+      "retrieved": [
+        "fair_month_comparison",
+        "evidence_boundaries",
+        "sku_data_scope"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 6.308
+    },
+    {
+      "system": "hybrid",
+      "id": "test-04",
+      "split": "holdout",
+      "expected": [
+        "fair_month_comparison"
+      ],
+      "retrieved": [
+        "fair_month_comparison"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 5.351
+    },
+    {
+      "system": "hybrid",
+      "id": "test-05",
+      "split": "holdout",
+      "expected": [
+        "sku_data_scope",
+        "evidence_boundaries"
+      ],
+      "retrieved": [
+        "sku_data_scope",
+        "evidence_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 5.446
+    },
+    {
+      "system": "hybrid",
+      "id": "test-06",
+      "split": "holdout",
+      "expected": [
+        "sku_data_scope"
+      ],
+      "retrieved": [
+        "sku_data_scope"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 6.151
+    },
+    {
+      "system": "hybrid",
+      "id": "test-07",
+      "split": "holdout",
+      "expected": [
+        "evidence_boundaries"
+      ],
+      "retrieved": [
+        "core_kpi_definitions"
+      ],
+      "hit_at_3": false,
+      "rr": 0,
+      "correct_abstention": null,
+      "latency_ms": 5.216
+    },
+    {
+      "system": "hybrid",
+      "id": "test-08",
+      "split": "holdout",
+      "expected": [
+        "evidence_boundaries"
+      ],
+      "retrieved": [
+        "evidence_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 4.981
+    },
+    {
+      "system": "hybrid",
+      "id": "test-09",
+      "split": "holdout",
+      "expected": [
+        "management_recommendation_rules"
+      ],
+      "retrieved": [
+        "management_recommendation_rules"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 6.653
+    },
+    {
+      "system": "hybrid",
+      "id": "test-10",
+      "split": "holdout",
+      "expected": [
+        "management_recommendation_rules"
+      ],
+      "retrieved": [
+        "management_recommendation_rules"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 5.118
+    },
+    {
+      "system": "hybrid",
+      "id": "test-11",
+      "split": "holdout",
+      "expected": [
+        "currency_and_capability_boundaries",
+        "core_kpi_definitions"
+      ],
+      "retrieved": [
+        "currency_and_capability_boundaries",
+        "core_kpi_definitions"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 4.942
+    },
+    {
+      "system": "hybrid",
+      "id": "test-12",
+      "split": "holdout",
+      "expected": [
+        "currency_and_capability_boundaries"
+      ],
+      "retrieved": [
+        "currency_and_capability_boundaries"
+      ],
+      "hit_at_3": true,
+      "rr": 1.0,
+      "correct_abstention": null,
+      "latency_ms": 5.549
+    },
+    {
+      "system": "hybrid",
+      "id": "test-13",
+      "split": "holdout",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 5.412
+    },
+    {
+      "system": "hybrid",
+      "id": "test-14",
+      "split": "holdout",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 4.071
+    },
+    {
+      "system": "hybrid",
+      "id": "test-15",
+      "split": "holdout",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 4.988
+    },
+    {
+      "system": "hybrid",
+      "id": "test-16",
+      "split": "holdout",
+      "expected": [],
+      "retrieved": [],
+      "hit_at_3": null,
+      "rr": 0,
+      "correct_abstention": true,
+      "latency_ms": 3.991
+    }
+  ]
+}

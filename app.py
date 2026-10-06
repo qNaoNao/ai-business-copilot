@@ -13,8 +13,6 @@ import streamlit as st
 from src.agent import (
     DEFAULT_MODEL,
     PROJECT_ROOT,
-    create_client,
-    run_agent_turn,
 )
 from src.report_export import build_analysis_report
 from src.run_history import (
@@ -25,6 +23,9 @@ from src.run_history import (
 )
 from src.ui_helpers import build_csv_downloads
 from src.ui_visualizations import build_tool_visualizations
+from src.workflow import run_workflow, list_workflow_sessions, DEMO_QUESTION, FOLLOWUP_QUESTION
+from src.demo_data import DEMO_PATH, create_demo_database
+from src.database import DB_PATH
 
 
 def reset_conversation() -> None:
@@ -356,6 +357,7 @@ def render_message(message: dict[str, Any]) -> None:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         if message["role"] == "assistant":
+            render_run_audit(message)
             render_visualizations(
                 message.get("tool_trace", []),
             )
@@ -363,6 +365,24 @@ def render_message(message: dict[str, Any]) -> None:
                 message.get("tool_trace", []),
                 turn_number=message.get("turn_number", 0),
             )
+
+
+def render_run_audit(message: dict[str, Any]) -> None:
+    if not message.get("backend"):
+        return
+    usage = message.get("usage", {})
+    checks = message.get("checks", [])
+    warnings = [c for c in checks if not c["passed"]]
+    st.caption(f"模式：{'免费预设演示' if message['backend'] == 'demo' else 'OpenAI 付费模型'} · 状态：{message.get('status')} · 输入/输出 tokens：{usage.get('input_tokens', 0)}/{usage.get('output_tokens', 0)}")
+    if warnings:
+        st.warning("自动检查发现待核验项，请查看运行审计；不要直接将回答作为业务事实。")
+    with st.expander("知识引用与运行审计", expanded=False):
+        st.caption("规则检查不是完整的事实或因果证明。未配置模型价格时成本显示为空；准确扣费以 API 账单为准。")
+        st.json({"usage": usage, "checks": checks}, expanded=False)
+        for row in message.get("knowledge", []):
+            st.markdown(f"**{row['title']}** · `{row['citation']}`")
+            st.caption(f"{row['source']} · {row['retrieval_backend']}")
+            st.write(row['content'])
 
 
 def render_report_downloads(
@@ -413,6 +433,10 @@ st.set_page_config(
 )
 
 load_dotenv(PROJECT_ROOT / ".env")
+if not DB_PATH.exists() and not os.getenv("BUSINESS_DB_PATH"):
+    if not DEMO_PATH.exists():
+        create_demo_database()
+    os.environ["BUSINESS_DB_PATH"] = str(DEMO_PATH)
 initialize_state()
 model = os.getenv("OPENAI_MODEL", DEFAULT_MODEL)
 history_sessions = group_history_sessions(load_run_history())
@@ -423,8 +447,16 @@ history_by_id = {
 
 st.title("📊 AI Business Copilot")
 st.caption("用自然语言查询经营数据，并连续追问品类、SKU 和时间趋势。")
+st.caption("工程化版本：本地混合检索与来源引用 · LangGraph 检查点恢复 · 证据规则检查 · 运行审计")
 
 with st.sidebar:
+    mode_label = st.radio("运行模式", ["免费演示（不调用 API）", "OpenAI（付费模型）"], key="mode_label")
+    backend = "demo" if mode_label.startswith("免费") else "openai"
+    if st.session_state.get("active_backend", backend) != backend:
+        reset_conversation()
+    st.session_state.active_backend = backend
+    paid_allowed = backend == "demo" or st.checkbox("允许本次会话调用付费 API（最多6次模型请求/轮）", key="paid_allowed")
+    st.caption("数据来源：合成演示数据" if os.getenv("BUSINESS_DB_PATH") == str(DEMO_PATH) else "数据来源：本地电商数据")
     if st.session_state.viewing_history_session_id:
         st.subheader("历史回溯")
         st.caption("当前正在只读查看已保存的会话。")
@@ -434,15 +466,12 @@ with st.sidebar:
             st.rerun()
     else:
         st.subheader("当前会话")
-        st.caption(f"模型：{model}")
+        st.caption(f"模型：{model}" if backend == "openai" else "回答生成：免费预设流程（不调用模型）")
         st.caption(
             "会话编号："
             f"{st.session_state.session_id[:8]}"
         )
-        st.info(
-            "每次提交问题都会调用 OpenAI API 并产生少量费用。"
-            "工具查询结果来自本地数据库。"
-        )
+        st.info("演示模式免费：查询真实本地数据，使用预设流程，不是大模型回答。" if backend == "demo" else "付费模式：自然语言选工具，最多6次模型请求/6次工具调用，每次输出限制3500 tokens。")
 
     if st.button(
         "开始新会话",
@@ -451,6 +480,30 @@ with st.sidebar:
     ):
         reset_conversation()
         st.rerun()
+
+    st.divider()
+    st.subheader("可恢复工作流")
+    try:
+        workflows = [s for s in list_workflow_sessions() if s["backend"] == backend]
+    except Exception as exc:
+        workflows = []
+        st.caption(f"检查点暂不可读：{type(exc).__name__}")
+    if workflows:
+        selected_workflow = st.selectbox("选择可继续的会话", workflows,
+            format_func=lambda s: f"{s['session_id'][:8]} · {s['turn_number']}轮 · {'待恢复' if s['pending'] else '已完成'} · {s['question'][:20]}")
+        if st.button("恢复并继续该会话", disabled=not paid_allowed, width="stretch"):
+            try:
+                restored = run_workflow(None, session_id=selected_workflow["session_id"], backend=backend)
+                st.session_state.session_id = selected_workflow["session_id"]
+                st.session_state.messages = restored["messages"]
+                st.session_state.turn_number = restored["turn_number"] + 1
+                st.session_state.viewing_history_session_id = None
+                st.session_state.previous_response_id = restored.get("response_id")
+                st.rerun()
+            except Exception as exc:
+                st.error(f"恢复未完成：{exc}")
+    else:
+        st.caption("新版本运行过的会话将出现在这里；旧版 JSONL 历史仍可只读查看。")
 
     st.divider()
     st.subheader("历史会话")
@@ -526,8 +579,17 @@ for saved_message in messages_to_render:
 question = (
     None
     if viewing_history
-    else st.chat_input("请输入经营分析问题……")
+    else st.chat_input("请输入经营分析问题……", disabled=not paid_allowed)
 )
+
+if not viewing_history:
+    with st.expander("免费验收示例", expanded=not bool(st.session_state.messages)):
+        st.caption("第一轮完成品类→SKU；第二轮在同一会话追问周趋势。免费模式仅支持这些预设类型；任意问答需切换付费模式。")
+        first, second = st.columns(2)
+        if first.button("品类→SKU下钻", disabled=not paid_allowed, width="stretch"):
+            question = DEMO_QUESTION
+        if second.button("沿用该SKU看周趋势", disabled=not paid_allowed, width="stretch"):
+            question = FOLLOWUP_QUESTION
 
 if question:
     turn_number = st.session_state.turn_number
@@ -546,13 +608,13 @@ if question:
     with st.chat_message("assistant"):
         try:
             with st.spinner("正在查询数据并分析……"):
-                result = run_agent_turn(
+                result = run_workflow(
                     question,
-                    client=create_client(),
+                    session_id=st.session_state.session_id,
+                    backend=backend,
                     model=model,
-                    tool_trace=tool_trace,
-                    previous_response_id=previous_response_id,
                 )
+                tool_trace = result["trace"]
         except Exception as error:
             error_text = f"这轮分析没有完成：{error}"
             _, history_error = save_run_safely(
@@ -586,25 +648,28 @@ if question:
         else:
             _, history_error = save_run_safely(
                 question=question,
-                answer=result.answer,
+                answer=result["answer"],
                 tool_trace=tool_trace,
                 model=model,
                 session_id=st.session_state.session_id,
                 turn_number=turn_number,
                 previous_response_id=previous_response_id,
-                response_id=result.response_id,
+                response_id=result.get("response_id"),
+                workflow={k: result[k] for k in ["backend", "status", "knowledge", "checks", "usage"]},
             )
             assistant_message = {
                 "role": "assistant",
-                "content": result.answer,
+                "content": result["answer"],
                 "tool_trace": tool_trace,
                 "turn_number": turn_number,
+                **{k: result[k] for k in ["backend", "status", "knowledge", "checks", "usage"]},
             }
             st.session_state.messages.append(assistant_message)
-            st.session_state.previous_response_id = result.response_id
+            st.session_state.previous_response_id = result.get("response_id")
             st.session_state.turn_number += 1
 
-            st.markdown(result.answer)
+            st.markdown(result["answer"])
+            render_run_audit(assistant_message)
             if history_error:
                 st.warning(
                     "回答已经完成，但未能保存到本地历史："

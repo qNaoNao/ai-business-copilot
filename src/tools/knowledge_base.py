@@ -55,7 +55,7 @@ def load_business_knowledge(
     return entries
 
 
-def search_business_knowledge(
+def search_keyword_baseline(
     query,
     limit=3,
 ):
@@ -112,3 +112,10 @@ def search_business_knowledge(
         matches[:limit],
         columns=RESULT_COLUMNS,
     )
+
+
+def search_business_knowledge(query, limit=3):
+    """Retrieve versioned evidence; retain the legacy empty-frame contract."""
+    from src.retrieval import get_retriever
+    rows = get_retriever().search(query, limit)
+    return pd.DataFrame(rows) if rows else pd.DataFrame(columns=RESULT_COLUMNS)

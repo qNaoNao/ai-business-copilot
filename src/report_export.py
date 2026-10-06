@@ -160,6 +160,13 @@ def _build_markdown(
             content or "（未保存回答文本。）",
         ])
         tool_trace = message.get("tool_trace", [])
+        if message.get("backend"):
+            sections.append("### 运行审计\n\n" + "```json\n" + json.dumps({
+                "backend": message.get("backend"), "status": message.get("status"),
+                "usage": message.get("usage", {}), "checks": message.get("checks", []),
+                "knowledge_sources": [{k: row.get(k) for k in ["citation", "title", "source", "version", "retrieval_backend", "corpus_version"]}
+                                      for row in message.get("knowledge", [])],
+            }, ensure_ascii=False, indent=2) + "\n```")
         if isinstance(tool_trace, list):
             sections.extend(_tool_evidence_markdown(tool_trace))
 

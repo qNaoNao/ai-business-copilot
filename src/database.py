@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import sqlite3
 
 
@@ -17,9 +18,10 @@ def get_connection():
     Create and return a connection to the SQLite database.
     """
 
-    if not DB_PATH.exists():
+    database_path = Path(os.getenv("BUSINESS_DB_PATH") or DB_PATH).expanduser().resolve()
+    if not database_path.exists():
         raise FileNotFoundError(
-            f"Database not found: {DB_PATH}"
+            f"Database not found: {database_path}. Run python -m src.demo_data for a synthetic sample."
         )
 
-    return sqlite3.connect(DB_PATH)
+    return sqlite3.connect(database_path.as_uri() + "?mode=ro", uri=True)
