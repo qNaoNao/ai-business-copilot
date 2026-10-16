@@ -1,73 +1,112 @@
-# 本地升级 2.0：你需要知道和手动完成的事项
+# 运行与复现指南
 
-项目仍在：`/Users/qixiaoma/Documents/Projects/ai-business-copilot`。
-原数据库、.env、旧历史和原 ai-copilot Conda 环境没有被替换。
-新依赖安装在项目自己的 `.venv`；运行新版本请用它。
-不需要另装 Codex 插件。没有上传到 GitHub、开放公网访问或替你选择开源协议。
+本文说明环境配置、免费演示、会话恢复、检索索引和离线验收。
+应用目前在本机运行，公开仓库不等于公开托管的在线服务。
 
-## 先打开免费演示
+## 环境配置
 
-开发时本地页面已运行在 http://127.0.0.1:8501 。如果之后关闭了服务，在 VS Code 终端运行：
+使用 Python 3.11，在仓库根目录创建并激活环境：
 
 ```bash
-cd /Users/qixiaoma/Documents/Projects/ai-business-copilot
-.venv/bin/python -m streamlit run app.py --server.address 127.0.0.1 --browser.gatherUsageStats false
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.lock.txt
 ```
 
-保持终端窗口运行，打开上面的网址。网址不是在线部署；关机后需要重新启动。
-选择“免费演示（不调用 API）”，点击“品类→SKU下钻”，完成后点“沿用该SKU看周趋势”。
-这个过程无需 API Key，也不扣模型余额；回答由预设流程生成，但数字与图表由本地数据库计算。
+以下命令面向 macOS/Linux。依赖版本由 `requirements.lock.txt` 固定。
 
-刷新或重新打开网页后：侧栏“可恢复工作流”选择会话，再点“恢复并继续该会话”。
-该处可以继续提问；“历史会话”只读查看旧记录。未完成的付费会话恢复可能继续产生 API 费用。
-“开始新会话”不会删除原历史；付费/免费切换也使用新的会话，避免混用结果。
+## 数据与免费演示
 
-## 修改知识库后
+私有电商数据库不随仓库分发。全新检出可使用合成数据：
 
 ```bash
-.venv/bin/python -m src.retrieval --build
+python -m src.demo_data
+export BUSINESS_DB_PATH="$PWD/.demo/business.db"
+python -m streamlit run app.py --server.address 127.0.0.1 --browser.gatherUsageStats false
 ```
 
-构建本地向量索引，不调用付费 API。首次下载需要网络；后续检索可离线。
-没建或索引过期时会显示 bm25-fallback。不要把这个降级模式写成向量检索成功。
+合成数据默认生成在 `.demo/business.db`，不代表真实业务经营结果。
+生成器拒绝覆盖已有数据库；数据库已存在时不必重复执行生成命令。
+网页在没有私有数据库时也可自动使用合成演示数据。
 
-## GitHub Desktop 提交步骤（你来做）
+打开 `http://127.0.0.1:8501`，保持启动服务的终端运行。
+选择“免费演示（不调用 API）”，依次执行“品类→SKU下钻”和“沿用该SKU看周趋势”。
 
-1. 打开 Desktop，Current Repository 选择 ai-business-copilot。
-2. 在 Changes 检查本次变化，包括 workflow、retrieval、tests、docs、锁定依赖和 `.github/workflows/ci.yml`。
-3. 确認列表没有 `.env`、`.venv`、`.cache`、`runs`、数据库、购买的 EchoMind 压缩包或付费源码。
-   它们已被忽略，但仍应亲自看一次。不要把个人简历/联系人信息或 Key 带进去。
-4. Summary 填 `Upgrade copilot with persistent workflow and local RAG`。
-5. 点击 Commit to main，再点 Push origin。
-6. 打开 GitHub 仓库的 Actions，查看 `API-free acceptance`。只有实际变绿后，才能说“CI 已通过”。
-   这套工作流不需要配置 OpenAI Secret、不调用付费 API。
-7. 若 Actions 报错，将日志发来处理。不要为了变绿删掉真正失败的断言。
+免费演示使用预设分析流程执行真实 SQL，展示查询结果、图表、引用和审计信息；
+不调用大模型，也不提供任意自然语言问题的模型推理能力。
 
-## 需要你决定 / 登录的事情
+## 会话与中断恢复
 
-- **发布**：我没有替你推送或公开仓库；你决定提交/分享的范围。
-- **License**：还没有授权许可文件。是否允许他人使用和修改你的原创代码需你决定；
-  商业购买资料不是自动可开源的代码，模型和数据条款也应分别查看。
-- **在线 Demo**：当前只有本地服务。要发布，可先做禁用付费 API、使用合成数据的演示版；
-  需要你选择托管平台、账户和是否公开。不要直接把含 Key 的本地服务暴露公网。
-- **真实模型验收**：本次升级未消耗付费 API。若你希望再跑一次真实问答，
-  选 OpenAI 模式、确认费用，输入一个限定范围的问题即可；无需把 Key 发到聊天里。
-- **简历文件**：本次没有改 Word 简历。确认新版后再更新简历；下面文字只描述已实现能力。
+侧栏“可恢复工作流”可选择已保存会话，再点击“恢复并继续该会话”。
+节点完成后写入 SQLite 检查点，恢复时可复用已保存的查询证据和所选品类/SKU。
+“历史会话”用于只读回溯原有 JSONL 记录。
 
-## 可用于简历的准确表述（需自己能讲清）
+“开始新会话”不会删除旧历史。免费和付费模式使用独立会话。
+恢复未完成的付费工作流可能继续请求模型 API 并产生费用。
+检查点提供节点边界恢复，不保证远程 API 计费恰好一次。
 
-AI Business Copilot｜本地电商经营分析 Agent（Python / SQL / Streamlit / LangGraph）
+## 本地知识检索
 
-- 构建只读 SQL 经营工具与多轮工具调用链，支持月度指标、品类→SKU 下钻、周趋势及可追溯报告。
-- 引入 LangGraph + SQLite 检查点实现节点级中断恢复，并结合本地多语言 BM25/向量混合检索输出带版本的知识引用。
-- 建立模型调用预算、token 审计与证据边界规则检查；通过合成数据、模拟模型和网页测试完成 68 项本地自动验收。
+可显式构建本地向量索引：
 
-不要写：已上线、多 Agent 系统、企业级安全、提升真实营收、真实用户量、模型准确率 91.7%。
-91.7% 是这个小语料中 12 道相关留出检索题的 Hit@3，不是回答正确率。
-GitHub Actions 尚未实际执行前，不写“CI 通过”；要在截图中保留免费模式的标识。
+```bash
+python -m src.retrieval --build
+```
 
-## 学习顺序（不需要今天全部会）
+首次构建需要联网下载多语言嵌入模型；嵌入计算不调用付费 API。
+知识内容变化后需要重新构建。索引缺失、过期或模型不可用时，
+检索会显示 `bm25-fallback`，不会将降级结果标为向量检索。
 
-先运行两个免费示例，读工具输入/输出；再理解 SQL 指标与证据边界；
-接着看 workflow 的五个节点和恢复测试；最后理解检索对照实验为何没有证明向量比 BM25 更好。
-这比背框架名称更有助于解释自己的项目。
+## 可选模型模式
+
+复制 `.env.example` 为 `.env`，在本机配置 API Key 和模型名称，
+然后在页面明确选择 OpenAI 付费模式。`.env` 不应提交到 Git。
+
+付费模式会将问题、检索片段和工具结果发送至模型 API，
+并通过 `store=True` 和 `previous_response_id` 维护响应链。
+使用非公开数据前应核对相应的数据与存储政策。
+
+请求和工具调用有数量预算，实际 Token 用量可在审计区查看。
+费用估算需要配置普通输入、缓存输入和输出单价；未配置时费用显示为未知。
+
+## 测试与检索评测
+
+自动测试无需模型 API Key：
+
+```bash
+COPILOT_RETRIEVAL=bm25 python -B -m unittest discover -s tests -v
+python -m src.retrieval_evals
+```
+
+原电商数据库的确定性经营验收另行执行：
+
+```bash
+python -m src.offline_evals
+```
+
+该经营验收依赖未分发的原数据库，不能将合成数据结果冒充原数据验收。
+完整单元测试会明确跳过缺少私有数据时无法执行的专用检查。
+
+向量索引已构建后，可对比本地混合检索：
+
+```bash
+python -m src.retrieval_evals --dense
+```
+
+GitHub Actions 的 `API-free acceptance` 运行依赖安装与兼容性检查、
+合成 SQL/恢复/网页验收，以及关键词和 BM25 检索评测。
+CI 不调用付费 API，也不下载向量模型。
+提交 `01e58f8` 在 2026-10-06 的首次云端运行已通过；
+后续提交的结果以 [Actions 运行记录](https://github.com/qNaoNao/ai-business-copilot/actions/workflows/ci.yml) 为准。
+
+检索实验的语料规模、指标定义和局限详见
+[工程设计与验收](ENGINEERING_UPGRADE.md) 与 [评测说明](evaluation/README.md)。
+
+## 文件与部署边界
+
+凭据、数据库、缓存和运行历史不随源码分发。
+报告可包含问题、回答和查询证据，对外分享前应检查是否存在非公开数据。
+
+当前服务没有公开在线 Demo、认证、租户隔离或多用户托管能力，
+不能直接将带有付费凭据的本地服务暴露公网。
+代码、模型和数据的使用条件应分别核对；仓库尚未提供 License 文件。

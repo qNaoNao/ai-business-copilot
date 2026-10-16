@@ -8,9 +8,10 @@ a persistent LangGraph tool-calling workflow, multi-turn conversations, charts,
 run audits, and downloadable reports. Free demo and paid model modes are explicitly
 separated; the demo executes real SQL with a fixed plan, not a simulated LLM.
 
-> **Status (2026-10-05):** engineering-oriented local, single-agent application.
-> 68 local automated tests pass; public deployment and GitHub CI execution are
-> not claimed. GitHub Actions configuration is included but must be pushed/run.
+> **Status (2026-10-08):** local, single-agent application with public source code.
+> 68 automated tests passed locally. API-free GitHub Actions acceptance passed
+> for commit `01e58f8` on 2026-10-06. No public online deployment is available.
+> [View workflow runs](https://github.com/qNaoNao/ai-business-copilot/actions/workflows/ci.yml).
 
 ## Engineering upgrade
 
@@ -30,7 +31,7 @@ separated; the demo executes real SQL with a fixed plan, not a simulated LLM.
   isolated workflow recovery tests, Streamlit acceptance and API-free CI.
 
 Read [upgrade, test evidence and boundaries](docs/ENGINEERING_UPGRADE.md) and
-[user handoff / publishing checklist](docs/HANDOFF_2.0.md).
+[runtime and reproduction guide](docs/HANDOFF_2.0.md).
 
 The upgrade remains local. Default free mode, persistent recovery, citation audit
 and charts can be exercised without an API key; the screenshots below include
@@ -99,9 +100,9 @@ a stockout or delisting.
 
 ### Engineering upgrade: free demo and checkpoint recovery
 
-The new UI labels demo answers explicitly, keeps graph conversations recoverable,
-and includes knowledge-version citations and execution audits. These screenshots
-use the default narrow in-app browser; the original wider UI views are below.
+The UI labels demo answers explicitly, keeps graph conversations recoverable,
+and includes knowledge-version citations and execution audits. The screenshots
+below show the workflow controls and recovered weekly-trend analysis.
 
 ![Explicitly labelled free local workflow](docs/images/04-engineering-upgrade.jpg)
 
@@ -399,6 +400,12 @@ Current local validation:
 - the offline suite makes no OpenAI API request and does not require an API
   key.
 
+API-free GitHub Actions acceptance also passed for commit `01e58f8` on
+2026-10-06. Cloud checks use synthetic data and explicitly skip unavailable
+private-data checks; they do not validate live model answer quality or dense
+retrieval. See [workflow runs](https://github.com/qNaoNao/ai-business-copilot/actions/workflows/ci.yml)
+for the status of subsequent commits.
+
 On the 12 relevant holdout retrieval questions, Hit@3 is 6/12 for the keyword
 baseline and 11/12 for both BM25 and hybrid. All four unrelated holdout questions
 abstain. This small six-document benchmark does **not** demonstrate superiority
@@ -457,9 +464,9 @@ The acceptance cases lock down:
 
 ## Next steps
 
-- Push the upgrade and confirm GitHub Actions actually runs successfully.
-- Optionally authorize one bounded paid live acceptance run; this upgrade's new
-  API path has been tested with fake responses, not billed production requests.
-- Decide a license for original code and separately check model/data terms.
-- If hosting is needed, first add authentication, dataset isolation and secret
+- Expand the knowledge corpus and failure cases beyond the small current benchmark.
+- Evaluate the new graph's paid API path with a bounded live acceptance set;
+  current workflow checks use simulated model responses.
+- Add a license for original code after checking model and data terms separately.
+- Prepare controlled hosting with authentication, dataset isolation and secret
   management; do not expose the paid local app directly to the Internet.
