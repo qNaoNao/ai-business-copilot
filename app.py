@@ -2,6 +2,7 @@
 
 from datetime import datetime
 import os
+from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
@@ -26,6 +27,7 @@ from src.ui_visualizations import build_tool_visualizations
 from src.workflow import run_workflow, list_workflow_sessions, DEMO_QUESTION, FOLLOWUP_QUESTION
 from src.demo_data import DEMO_PATH, create_demo_database
 from src.database import DB_PATH
+from src.workbench_ui import render_workbench
 
 
 def reset_conversation() -> None:
@@ -449,8 +451,20 @@ st.title("📊 AI Business Copilot")
 st.caption("用自然语言查询经营数据，并连续追问品类、SKU 和时间趋势。")
 st.caption("工程化版本：本地混合检索与来源引用 · LangGraph 检查点恢复 · 证据规则检查 · 运行审计")
 
+workspace = st.sidebar.selectbox("工作区", ["对话诊断", "数据探索与分析资产"],
+                                index=1 if st.query_params.get("workspace") == "analysis" else 0)
+active_database = Path(os.getenv("BUSINESS_DB_PATH") or DB_PATH).expanduser().resolve()
+if active_database == DEMO_PATH.resolve():
+    st.info("当前数据：可复现的合成演示样本，不是真实企业业绩。查询、图表和分析资产功能正常执行。")
+if workspace == "数据探索与分析资产":
+    render_workbench()
+    st.stop()
+
 with st.sidebar:
-    mode_label = st.radio("运行模式", ["免费演示（不调用 API）", "OpenAI（付费模型）"], key="mode_label")
+    modes = ["免费演示（不调用 API）"]
+    if os.getenv("COPILOT_DEMO_ONLY", "").lower() != "true":
+        modes.append("OpenAI（付费模型）")
+    mode_label = st.radio("运行模式", modes, key="mode_label")
     backend = "demo" if mode_label.startswith("免费") else "openai"
     if st.session_state.get("active_backend", backend) != backend:
         reset_conversation()

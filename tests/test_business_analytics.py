@@ -280,6 +280,7 @@ class BusinessAnalyticsSmokeTests(unittest.TestCase):
         self.assertEqual(
             names,
             {
+                "query_business_metrics",
                 "get_monthly_kpis",
                 "get_category_contribution",
                 "compare_category",

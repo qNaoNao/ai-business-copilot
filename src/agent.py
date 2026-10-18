@@ -32,6 +32,13 @@ methodology, SKU limitations, evidence boundaries, or recommendation rules. Trea
 retrieved knowledge as interpretation guidance and analytics-tool output as the
 source of numeric facts.
 
+Use query_business_metrics for flexible approved-metric breakdowns that the fixed
+comparison tools do not cover. Its output is one evidence packet: read rows,
+definitions, truncated and scope_notes before answering. Never add distinct
+customer/order counts across categories, sum ratios, or treat partial weeks as
+full periods. It accepts structured intent, not free-form SQL. Continue using
+the contribution tools for ranked calendar-day-normalized month declines.
+
 When identifying the category with the largest absolute daily GMV decline, call
 get_category_contribution with direction decline and use its first row. Rank by
 daily_gmv_change, not daily_change_pct. Diagnose only that selected category unless

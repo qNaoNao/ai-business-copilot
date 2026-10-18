@@ -1,0 +1,11 @@
+**
+!app.py
+!requirements.lock.txt
+!src/
+!src/**
+!knowledge_base/
+!knowledge_base/**
+!.streamlit/
+!.streamlit/config.toml
+src/**/__pycache__/
+src/**/*.pyc

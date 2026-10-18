@@ -1,0 +1,6 @@
+[client]
+# Use the application's formula-escaped CSV export rather than raw grid export.
+disableDataExport = true
+
+[browser]
+gatherUsageStats = false

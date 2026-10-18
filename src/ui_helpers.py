@@ -4,6 +4,7 @@ import re
 from typing import Any
 
 import pandas as pd
+from src.export_safety import safe_csv
 
 
 def build_csv_downloads(
@@ -33,11 +34,7 @@ def build_csv_downloads(
         file_name = (
             f"turn_{turn_number}_{call_number}_{tool_name}.csv"
         )
-        csv_bytes = (
-            pd.DataFrame(rows)
-            .to_csv(index=False)
-            .encode("utf-8-sig")
-        )
+        csv_bytes = safe_csv(pd.DataFrame(rows))
 
         downloads.append({
             "tool_name": tool_name,

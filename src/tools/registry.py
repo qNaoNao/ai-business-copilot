@@ -13,6 +13,9 @@ import re
 from typing import Any
 
 import pandas as pd
+from jsonschema import Draft202012Validator
+
+from src.semantic import DIMENSIONS, METRICS, query_business_metrics
 
 from src.tools.business_analytics import (
     compare_category,
@@ -64,6 +67,35 @@ class ToolSpec:
 
 
 TOOLS = (
+    ToolSpec(
+        name="query_business_metrics",
+        description=(
+            "Explore approved business metrics by day, Monday-based week, month, "
+            "category or product_id (at most two dimensions). Choose metric names, "
+            "never SQL. Returns ONE evidence packet containing rows, definitions, "
+            "parameterized SQL, versions, truncation and scope notes. Only delivered "
+            "orders; distinct orders/customers are non-additive across categories. "
+            "No zero filling or automatic daily normalization. Prefer existing "
+            "comparison/contribution tools for fair month comparisons and ranked declines."
+        ),
+        function=query_business_metrics,
+        parameters={
+            "type": "object",
+            "properties": {
+                "metrics": {"type": "array", "items": {"type": "string", "enum": list(METRICS)}, "minItems": 1, "maxItems": len(METRICS), "uniqueItems": True},
+                "dimensions": {"type": "array", "items": {"type": "string", "enum": list(DIMENSIONS)}, "maxItems": 2, "uniqueItems": True},
+                "start_date": DATE_SCHEMA,
+                "end_date": DATE_SCHEMA,
+                "category": {"type": ["string", "null"], "maxLength": 128},
+                "product_id": {"type": ["string", "null"], "maxLength": 128},
+                "limit": {"type": "integer", "minimum": 1, "maximum": 500},
+                "order_by": {"type": ["string", "null"]},
+                "descending": {"type": "boolean"},
+            },
+            "required": ["metrics", "dimensions", "start_date", "end_date", "category", "product_id", "limit", "order_by", "descending"],
+            "additionalProperties": False,
+        },
+    ),
     ToolSpec(
         name="search_business_knowledge",
         description=(
@@ -291,6 +323,11 @@ def call_tool(name: str, arguments: Mapping[str, Any]) -> list[dict[str, Any]]:
             raise ValueError("Missing tool argument: " + parameter.name)
     for key, value in arguments.items():
         schema = properties[key]
+        if name == "query_business_metrics":
+            errors = list(Draft202012Validator(schema).iter_errors(value))
+            if errors:
+                raise ValueError(f"{key} does not match the approved metric-query schema")
+            continue
         valid_type = (isinstance(value, str) if schema["type"] == "string"
                       else isinstance(value, int) and not isinstance(value, bool))
         if not valid_type:

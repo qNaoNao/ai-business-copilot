@@ -22,10 +22,43 @@ jobs:
       - run: python -m pip install -r requirements.lock.txt
       - run: python -m pip check
       - name: Unit, synthetic SQL, workflow recovery and Streamlit acceptance
-        run: python -B -m unittest discover -s tests -v
+        run: python -B -m src.acceptance --report runs/acceptance.json
       - name: Keyword and BM25 retrieval evaluation (no embedding download)
         run: python -m src.retrieval_evals
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: retrieval-evaluation
-          path: docs/evaluation/retrieval_results.json
+          name: acceptance-and-retrieval
+          path: |
+            docs/evaluation/retrieval_results.json
+            runs/acceptance.json
+  container-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build isolated synthetic-data image
+        run: docker build -t copilot-acceptance .
+      - name: Verify synthetic SQL inside the non-root image
+        run: >-
+          docker run --rm copilot-acceptance python -c
+          'from src.semantic import execute_query;
+          r=execute_query(dict(metrics=["gmv"],dimensions=["month"],start_date="2018-01-01",end_date="2018-02-28"));
+          assert [x["gmv"] for x in r["rows"]] == [860,600]'
+      - name: Start container web application
+        run: docker run --detach --name copilot-web copilot-acceptance
+      - name: Verify real Streamlit health endpoint in container
+        run: |
+          docker exec copilot-web python -c '
+          import time, urllib.request
+          for attempt in range(25):
+              try:
+                  assert urllib.request.urlopen("http://127.0.0.1:8501/_stcore/health", timeout=1).status == 200
+                  break
+              except Exception:
+                  time.sleep(1)
+          else:
+              raise SystemExit("Container web health did not become ready")'
+      - name: Stop isolated test container
+        if: always()
+        run: docker rm -f copilot-web

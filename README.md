@@ -1,5 +1,7 @@
 # AI Business Copilot
 
+[![API-free acceptance](https://github.com/qNaoNao/ai-business-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/qNaoNao/ai-business-copilot/actions/workflows/ci.yml)
+
 An evidence-based business analytics agent that turns natural-language questions
 into auditable analysis over a local SQLite database.
 
@@ -8,10 +10,36 @@ a persistent LangGraph tool-calling workflow, multi-turn conversations, charts,
 run audits, and downloadable reports. Free demo and paid model modes are explicitly
 separated; the demo executes real SQL with a fixed plan, not a simulated LLM.
 
-> **Status (2026-10-08):** local, single-agent application with public source code.
-> 68 automated tests passed locally. API-free GitHub Actions acceptance passed
-> for commit `01e58f8` on 2026-10-06. No public online deployment is available.
+The governed analysis workbench adds a shared metric catalog, composable queries,
+inspectable parameterized SQL, persistent analysis snapshots and review feedback.
+A token-protected metrics API exposes the same query engine without model fees.
+
+> **Status (2026-10-17):** local, single-agent application with public source code.
+> 105 automated tests passed locally. Check the latest workflow run for cloud
+> acceptance of the workbench/API changes. Prior API-free CI passed for commit
+> `01e58f8` on 2026-10-06. Docker configuration is supplied but its runtime has
+> not been validated locally (Docker engine unavailable). No public deployment.
 > [View workflow runs](https://github.com/qNaoNao/ai-business-copilot/actions/workflows/ci.yml).
+
+## Governed analytics workbench
+
+Choose **工作区 → 数据探索与分析资产** in the sidebar. No model key is required.
+
+- Combine **9 approved metrics** and **5 dimensions** (up to two per query).
+- Preview SQL and bound parameters before execution. Free-form SQL is not accepted.
+- Enforce source-key uniqueness, read-only authorization, row/date/VM/time limits.
+- Inspect metric definitions, query plans, catalog version and source fingerprint.
+- Save immutable result snapshots; reload without querying or replay against current
+  data with explicit source/catalog/result-change flags.
+- Add append-only manual reviews and inspect local query success/error counts.
+- Export query evidence as JSON and data as formula-escaped CSV.
+- Integrate through a separate analyst/viewer-token HTTP API; no paid-model endpoints.
+
+The agent can call the same engine through `query_business_metrics`, its seventh
+registered tool. Paid-model selection is tested with simulated responses, not a
+new claim about live model accuracy. The manual workbench is fully API-free.
+
+Read [product design, API, deployment and acceptance](docs/PRODUCT_3.0.md).
 
 ## Engineering upgrade
 
@@ -160,6 +188,7 @@ the UI uses the new graph, and `python -m src.workflow` is the new persistent CL
 
 | Tool | Purpose |
 |---|---|
+| `query_business_metrics` | Validated metric/dimension intent compiled into bounded, read-only SQL; returns a versioned evidence packet |
 | `get_monthly_kpis` | Monthly totals, daily-normalized performance, AOV, item price, and freight share |
 | `get_category_contribution` | Largest category growth or decline by daily GMV contribution |
 | `compare_category` | Total and daily-normalized drivers for one category across two months |
@@ -376,6 +405,16 @@ Run the full automated test suite:
 COPILOT_RETRIEVAL=bm25 python -B -m unittest discover -s tests -v
 ```
 
+Or emit a machine-readable, skip-aware acceptance record:
+
+```bash
+COPILOT_RETRIEVAL=bm25 LANGSMITH_TRACING=false python -B -m src.acceptance
+```
+
+This writes `runs/acceptance.json` locally. CI uploads that record and retrieval
+results as an artifact. A separate CI job builds the synthetic-data Docker image;
+its outcome must be checked after pushing, not inferred from local tests.
+
 Run the deterministic business acceptance suite:
 
 ```bash
@@ -394,7 +433,7 @@ python -m src.retrieval_evals --dense
 
 Current local validation:
 
-- **68 automated tests passed locally** (42 original + 26 new);
+- **105 automated tests passed locally** (68 previous + 37 workbench/API tests);
 - **7/7 offline business questions passed**;
 - **17/17 deterministic fact checks passed**;
 - the offline suite makes no OpenAI API request and does not require an API
@@ -439,8 +478,9 @@ The acceptance cases lock down:
 
 ## Current limitations
 
-- The application currently runs locally and has no authentication or hosted
-  multi-user environment.
+- The Streamlit UI remains local and unauthenticated. The separate metrics API
+  has two static-token roles, not SSO, user accounts or tenant/data isolation.
+  Viewer and analyst tokens address one shared workspace and dataset.
 - The private SQLite database is excluded from Git; synthetic demo data is
   reproducible but not a replacement for a properly governed production dataset.
 - The RAG corpus currently contains only six short curated business rules, not
@@ -449,8 +489,14 @@ The acceptance cases lock down:
 - Checkpoints provide node-boundary recovery, not exactly-once remote billing.
   A crash after a remote response but before checkpoint commit can require a
   repeated API request. Expired server-side response chains may need a new session.
-- SQLite/checkpoint locks target local macOS/Linux use. Multi-user hosting,
-  authentication, tenant isolation, Windows locking and deployment are not delivered.
+- SQLite/checkpoint locks target local macOS/Linux use. Docker/Compose files are
+  supplied, but the local Docker engine was unavailable for runtime validation.
+  Multi-user hosting, tenant isolation and Windows locking are not delivered.
+- The new metric engine compiles approved structured intent, not arbitrary text-to-SQL.
+  It does not zero-fill periods or automatically normalize partial weeks/months.
+  Distinct customers/orders are not additive across categories or SKUs.
+- Source fingerprints use file metadata, not full database content hashes.
+  Snapshot digests detect accidental corruption, not malicious privileged tampering.
 - Rule checks flag selected risks, but cannot prove every number-to-metric mapping,
   correct causal interpretation, or immunity to prompt injection.
 - Analysis is limited to the registered tools and fields available in the local
@@ -464,6 +510,7 @@ The acceptance cases lock down:
 
 ## Next steps
 
+- Run the new cloud CI and Docker build/health acceptance after pushing.
 - Expand the knowledge corpus and failure cases beyond the small current benchmark.
 - Evaluate the new graph's paid API path with a bounded live acceptance set;
   current workflow checks use simulated model responses.
